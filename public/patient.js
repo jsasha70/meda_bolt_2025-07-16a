@@ -77,20 +77,50 @@ function renderQuestionnaire(template) {
     const content = document.getElementById('questionnaireContent');
     const title = document.getElementById('questionnaireTitle');
     
+    console.log('Рендеринг анкеты:', template);
+    
     title.textContent = template.questionnaire.title || 'Анкета';
     content.innerHTML = '';
     
-    if (template.questionnaire.sections) {
-        template.questionnaire.sections.forEach(section => {
+    // Проверяем различные возможные структуры данных
+    let sections = null;
+    if (template.questionnaire && template.questionnaire.sections) {
+        if (Array.isArray(template.questionnaire.sections)) {
+            sections = template.questionnaire.sections;
+        } else if (template.questionnaire.sections.section) {
+            sections = Array.isArray(template.questionnaire.sections.section) 
+                ? template.questionnaire.sections.section 
+                : [template.questionnaire.sections.section];
+        }
+    }
+    
+    console.log('Найденные секции:', sections);
+    
+    if (sections && sections.length > 0) {
+        sections.forEach(section => {
             const sectionDiv = document.createElement('div');
             sectionDiv.className = 'section';
             
             const sectionTitle = document.createElement('h3');
-            sectionTitle.textContent = section.title;
+            sectionTitle.textContent = section.title || section.title?.[0] || 'Раздел';
             sectionDiv.appendChild(sectionTitle);
             
+            // Обрабатываем вопросы
+            let questions = null;
             if (section.questions) {
-                section.questions.forEach(question => {
+                if (Array.isArray(section.questions)) {
+                    questions = section.questions;
+                } else if (section.questions.question) {
+                    questions = Array.isArray(section.questions.question) 
+                        ? section.questions.question 
+                        : [section.questions.question];
+                }
+            }
+            
+            console.log('Вопросы в секции:', questions);
+            
+            if (questions && questions.length > 0) {
+                questions.forEach(question => {
                     const questionDiv = createQuestionElement(question);
                     sectionDiv.appendChild(questionDiv);
                 });
@@ -98,21 +128,33 @@ function renderQuestionnaire(template) {
             
             content.appendChild(sectionDiv);
         });
+    } else {
+        // Если секций нет, показываем сообщение об ошибке
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.textContent = 'Ошибка загрузки анкеты: не найдены разделы';
+        errorDiv.style.display = 'block';
+        content.appendChild(errorDiv);
+        console.error('Не удалось найти секции в шаблоне:', template);
     }
 }
 
 // Создание элемента вопроса
 function createQuestionElement(question) {
+    console.log('Создание вопроса:', question);
+    
     const questionDiv = document.createElement('div');
     questionDiv.className = 'question';
     
     const label = document.createElement('label');
-    label.textContent = question.text;
+    label.textContent = question.text || question.text?.[0] || 'Вопрос';
     questionDiv.appendChild(label);
     
-    const fieldName = `q_${question.id}`;
+    const questionId = question.id || question.id?.[0] || Math.random().toString(36).substr(2, 9);
+    const fieldName = `q_${questionId}`;
+    const questionType = question.type || question.type?.[0] || 'text';
     
-    switch (question.type) {
+    switch (questionType) {
         case 'text':
             const textInput = document.createElement('input');
             textInput.type = 'text';
@@ -126,7 +168,9 @@ function createQuestionElement(question) {
             numberInput.type = 'number';
             numberInput.name = fieldName;
             numberInput.id = fieldName;
-            if (question.step) numberInput.step = question.step;
+            if (question.step || question.step?.[0]) {
+                numberInput.step = question.step || question.step[0];
+            }
             questionDiv.appendChild(numberInput);
             break;
             
@@ -147,11 +191,13 @@ function createQuestionElement(question) {
             defaultOption.textContent = 'Выберите...';
             select.appendChild(defaultOption);
             
-            if (question.options) {
-                question.options.forEach(option => {
+            // Обрабатываем опции
+            let options = getQuestionOptions(question);
+            if (options && options.length > 0) {
+                options.forEach(option => {
                     const optionEl = document.createElement('option');
-                    optionEl.value = option.value;
-                    optionEl.textContent = option.text;
+                    optionEl.value = option.value || option.value?.[0] || '';
+                    optionEl.textContent = option.text || option.text?.[0] || '';
                     select.appendChild(optionEl);
                 });
             }
@@ -162,25 +208,27 @@ function createQuestionElement(question) {
             const radioGroup = document.createElement('div');
             radioGroup.className = 'radio-group';
             
-            if (question.options) {
-                question.options.forEach(option => {
+            let radioOptions = getQuestionOptions(question);
+            if (radioOptions && radioOptions.length > 0) {
+                radioOptions.forEach(option => {
                     const radioItem = document.createElement('div');
                     radioItem.className = 'radio-item';
                     
                     const radioInput = document.createElement('input');
                     radioInput.type = 'radio';
                     radioInput.name = fieldName;
-                    radioInput.value = option.value;
-                    radioInput.id = `${fieldName}_${option.value}`;
+                    const optionValue = option.value || option.value?.[0] || '';
+                    radioInput.value = optionValue;
+                    radioInput.id = `${fieldName}_${optionValue}`;
                     
                     const radioLabel = document.createElement('label');
                     radioLabel.htmlFor = radioInput.id;
-                    radioLabel.textContent = option.text;
+                    radioLabel.textContent = option.text || option.text?.[0] || '';
                     
                     radioItem.appendChild(radioInput);
                     radioItem.appendChild(radioLabel);
                     
-                    if (option.hasAdditionalText) {
+                    if (option.hasAdditionalText || option.hasAdditionalText?.[0] === 'true') {
                         const additionalDiv = document.createElement('div');
                         additionalDiv.className = 'additional-text';
                         additionalDiv.style.display = 'none';
@@ -216,32 +264,34 @@ function createQuestionElement(question) {
             const checkboxGroup = document.createElement('div');
             checkboxGroup.className = 'checkbox-group';
             
-            if (question.options) {
-                question.options.forEach(option => {
+            let checkboxOptions = getQuestionOptions(question);
+            if (checkboxOptions && checkboxOptions.length > 0) {
+                checkboxOptions.forEach(option => {
                     const checkboxItem = document.createElement('div');
                     checkboxItem.className = 'checkbox-item';
                     
                     const checkboxInput = document.createElement('input');
                     checkboxInput.type = 'checkbox';
                     checkboxInput.name = `${fieldName}[]`;
-                    checkboxInput.value = option.value;
-                    checkboxInput.id = `${fieldName}_${option.value}`;
+                    const optionValue = option.value || option.value?.[0] || '';
+                    checkboxInput.value = optionValue;
+                    checkboxInput.id = `${fieldName}_${optionValue}`;
                     
                     const checkboxLabel = document.createElement('label');
                     checkboxLabel.htmlFor = checkboxInput.id;
-                    checkboxLabel.textContent = option.text;
+                    checkboxLabel.textContent = option.text || option.text?.[0] || '';
                     
                     checkboxItem.appendChild(checkboxInput);
                     checkboxItem.appendChild(checkboxLabel);
                     
-                    if (option.hasAdditionalText) {
+                    if (option.hasAdditionalText || option.hasAdditionalText?.[0] === 'true') {
                         const additionalDiv = document.createElement('div');
                         additionalDiv.className = 'additional-text';
                         additionalDiv.style.display = 'none';
                         
                         const additionalInput = document.createElement('input');
                         additionalInput.type = 'text';
-                        additionalInput.name = `${fieldName}_${option.value}_additional`;
+                        additionalInput.name = `${fieldName}_${optionValue}_additional`;
                         additionalInput.placeholder = 'Укажите...';
                         additionalInput.disabled = true;
                         
@@ -265,9 +315,32 @@ function createQuestionElement(question) {
             }
             questionDiv.appendChild(checkboxGroup);
             break;
+            
+        default:
+            console.warn('Неизвестный тип вопроса:', questionType);
+            const defaultInput = document.createElement('input');
+            defaultInput.type = 'text';
+            defaultInput.name = fieldName;
+            defaultInput.id = fieldName;
+            questionDiv.appendChild(defaultInput);
     }
     
     return questionDiv;
+}
+
+// Функция для получения опций вопроса
+function getQuestionOptions(question) {
+    if (!question.options) return null;
+    
+    if (Array.isArray(question.options)) {
+        return question.options;
+    } else if (question.options.option) {
+        return Array.isArray(question.options.option) 
+            ? question.options.option 
+            : [question.options.option];
+    }
+    
+    return null;
 }
 
 // Сохранение анкеты
@@ -289,6 +362,8 @@ document.getElementById('questionnaireForm').addEventListener('submit', async fu
             answers[key] = value;
         }
     }
+    
+    console.log('Отправляемые ответы:', answers);
     
     try {
         const response = await fetch('/api/save-questionnaire', {

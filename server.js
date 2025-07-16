@@ -9,11 +9,11 @@ const PORT = 3000;
 
 // Middleware
 app.use(bodyParser.json());
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Создание необходимых папок
 const createDirectories = () => {
-  const dirs = ['anketa', 'templates', 'text-templates'];
+  const dirs = ['anketa', 'templates', 'text-templates', 'public'];
   dirs.forEach(dir => {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
@@ -37,6 +37,8 @@ const loadConfig = () => {
     console.error('Ошибка загрузки конфигурации:', err);
   }
   
+  // Сохраняем конфигурацию по умолчанию
+  saveConfig(defaultConfig);
   return defaultConfig;
 };
 
@@ -71,6 +73,9 @@ app.post('/api/auth', (req, res) => {
 // API для получения списка шаблонов анкет
 app.get('/api/templates', (req, res) => {
   try {
+    if (!fs.existsSync('templates')) {
+      return res.json([]);
+    }
     const templates = fs.readdirSync('templates')
       .filter(file => file.endsWith('.templ'))
       .map(file => ({
@@ -79,6 +84,7 @@ app.get('/api/templates', (req, res) => {
       }));
     res.json(templates);
   } catch (err) {
+    console.error('Ошибка чтения шаблонов:', err);
     res.status(500).json({ error: 'Ошибка чтения шаблонов' });
   }
 });
@@ -87,18 +93,24 @@ app.get('/api/templates', (req, res) => {
 app.get('/api/template/:id', (req, res) => {
   try {
     const templatePath = path.join('templates', req.params.id + '.templ');
+    console.log('Загрузка шаблона:', templatePath);
     if (!fs.existsSync(templatePath)) {
+      console.log('Шаблон не найден:', templatePath);
       return res.status(404).json({ error: 'Шаблон не найден' });
     }
     
     const xmlData = fs.readFileSync(templatePath, 'utf8');
+    console.log('XML данные:', xmlData);
     xmlParser.parseString(xmlData, (err, result) => {
       if (err) {
+        console.error('Ошибка парсинга XML:', err);
         return res.status(500).json({ error: 'Ошибка парсинга XML' });
       }
+      console.log('Результат парсинга:', JSON.stringify(result, null, 2));
       res.json(result);
     });
   } catch (err) {
+    console.error('Ошибка чтения шаблона:', err);
     res.status(500).json({ error: 'Ошибка чтения шаблона' });
   }
 });
@@ -188,6 +200,9 @@ const generateSummary = (templateId, answers, questPath) => {
 // API для получения списка дат анкет
 app.get('/api/questionnaire-dates', (req, res) => {
   try {
+    if (!fs.existsSync('anketa')) {
+      return res.json([]);
+    }
     const dates = fs.readdirSync('anketa')
       .filter(item => fs.statSync(path.join('anketa', item)).isDirectory())
       .sort()
@@ -253,6 +268,11 @@ app.post('/api/settings', (req, res) => {
 // API для получения сообщения благодарности
 app.get('/api/thanks-message', (req, res) => {
   res.json({ message: config.thanksMessage });
+});
+
+// Обслуживание главной страницы
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Запуск сервера
