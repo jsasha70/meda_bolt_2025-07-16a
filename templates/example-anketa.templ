@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<questionnaire>
+    <title>Анкета пациента</title>
+    <sections>
+        <section>
+            <title>Личная информация</title>
+            <questions>
+                <question>
+                    <id>1</id>
+                    <text>Фамилия, имя, отчество</text>
+                    <type>text</type>
+                </question>
+                <question>
+                    <id>2</id>
+                    <text>Возраст</text>
+                    <type>number</type>
+                </question>
+                <question>
+                    <id>3</id>
+                    <text>Пол</text>
+                    <type>radio</type>
+                    <options>
+                        <option>
+                            <value>male</value>
+                            <text>Мужской</text>
+                        </option>
+                        <option>
+                            <value>female</value>
+                            <text>Женский</text>
+                        </option>
+                    </options>
+                </question>
+            </questions>
+        </section>
+        <section>
+            <title>Жалобы</title>
+            <questions>
+                <question>
+                    <id>4</id>
+                    <text>Основные жалобы</text>
+                    <type>textarea</type>
+                </question>
+                <question>
+                    <id>5</id>
+                    <text>Имеются ли хронические заболевания?</text>
+                    <type>radio</type>
+                    <options>
+                        <option>
+                            <value>yes</value>
+                            <text>Да</text>
+                            <hasAdditionalText>true</hasAdditionalText>
+                        </option>
+                        <option>
+                            <value>no</value>
+                            <text>Нет</text>
+                        </option>
+                    </options>
+                </question>
+                <question>
+                    <id>6</id>
+                    <text>Отметьте симптомы, которые вас беспокоят:</text>
+                    <type>checkbox</type>
+                    <options>
+                        <option>
+                            <value>headache</value>
+                            <text>Головная боль</text>
+                        </option>
+                        <option>
+                            <value>fever</value>
+                            <text>Повышенная температура</text>
+                        </option>
+                        <option>
+                            <value>cough</value>
+                            <text>Кашель</text>
+                        </option>
+                        <option>
+                            <value>other</value>
+                            <text>Другое</text>
+                            <hasAdditionalText>true</hasAdditionalText>
+                        </option>
+                    </options>
+                </question>
+            </questions>
+        </section>
+    </sections>
+</questionnaire>

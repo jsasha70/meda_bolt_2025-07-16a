@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Рабочее место врача</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Окно авторизации -->
+        <div id="authPage" class="auth-container">
+            <div class="auth-card">
+                <h2>Вход для врача</h2>
+                <div class="input-group">
+                    <input type="password" id="doctorPassword" placeholder="Введите пароль">
+                    <button onclick="authenticate()">Войти</button>
+                </div>
+                <div id="authError" class="error-message"></div>
+            </div>
+        </div>
+
+        <!-- Главное меню -->
+        <div id="mainMenu" class="page hidden">
+            <div class="header">
+                <h1>Рабочее место врача</h1>
+            </div>
+            <div class="main-menu">
+                <div class="menu-card" onclick="showSettings()">
+                    <div class="menu-icon">⚙️</div>
+                    <h2>Настройки</h2>
+                </div>
+                <div class="menu-card" onclick="showFillQuestionnaire()">
+                    <div class="menu-icon">📝</div>
+                    <h2>Заполнить анкету</h2>
+                </div>
+                <div class="menu-card" onclick="showQuestionnaires()">
+                    <div class="menu-icon">📋</div>
+                    <h2>Анкеты</h2>
+                </div>
+            </div>
+        </div>
+
+        <!-- Настройки -->
+        <div id="settingsPage" class="page hidden">
+            <div class="header">
+                <h1>Настройки</h1>
+                <button onclick="showMainMenu()" class="btn btn-secondary">Назад</button>
+            </div>
+            <div class="settings-form">
+                <div class="input-group">
+                    <label>Пароль рабочего места пациента:</label>
+                    <input type="password" id="patientPasswordSetting">
+                </div>
+                <div class="input-group">
+                    <label>Пароль рабочего места врача:</label>
+                    <input type="password" id="doctorPasswordSetting">
+                </div>
+                <div class="input-group">
+                    <label>Фраза на последней странице:</label>
+                    <input type="text" id="thanksMessageSetting">
+                </div>
+                <button onclick="saveSettings()" class="btn btn-primary">Сохранить</button>
+            </div>
+        </div>
+
+        <!-- Заполнение анкеты врачом -->
+        <div id="fillQuestionnairePage" class="page hidden">
+            <div class="header">
+                <h1>Заполнить анкету</h1>
+                <button onclick="showMainMenu()" class="btn btn-secondary">Назад</button>
+            </div>
+            <div id="doctorTemplateList" class="template-list"></div>
+        </div>
+
+        <!-- Просмотр анкет -->
+        <div id="questionnairesPage" class="page hidden">
+            <div class="header">
+                <h1>Анкеты</h1>
+                <button onclick="showMainMenu()" class="btn btn-secondary">Назад</button>
+            </div>
+            <div id="dateList" class="date-list"></div>
+        </div>
+
+        <!-- Список анкет по дате -->
+        <div id="questionnaireListPage" class="page hidden">
+            <div class="header">
+                <h1 id="dateTitle">Анкеты</h1>
+                <button onclick="showQuestionnaires()" class="btn btn-secondary">Назад</button>
+            </div>
+            <div id="questionnaireList" class="questionnaire-list"></div>
+        </div>
+
+        <!-- Просмотр анкеты -->
+        <div id="viewQuestionnairePage" class="page hidden">
+            <div class="header">
+                <h1 id="viewQuestionnaireTitle">Просмотр анкеты</h1>
+                <div class="header-actions">
+                    <button onclick="goBackToList()" class="btn btn-secondary">Назад</button>
+                    <button onclick="editQuestionnaire()" class="btn btn-primary">Изменить</button>
+                    <button onclick="copySummary()" class="btn btn-success">Копировать выжимку</button>
+                </div>
+            </div>
+            <div id="viewQuestionnaireContent"></div>
+            <div id="summarySection" class="summary-section hidden">
+                <h3>Текстовая выжимка:</h3>
+                <div id="summaryContent"></div>
+            </div>
+        </div>
+
+        <!-- Редактирование анкеты -->
+        <div id="editQuestionnairePage" class="page hidden">
+            <div class="header">
+                <h1>Редактирование анкеты</h1>
+                <button onclick="cancelEdit()" class="btn btn-secondary">Отмена</button>
+            </div>
+            <form id="editQuestionnaireForm">
+                <div id="editQuestionnaireContent"></div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="doctor.js"></script>
+</body>
+</html>

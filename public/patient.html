@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Рабочее место пациента</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Окно авторизации -->
+        <div id="authPage" class="auth-container">
+            <div class="auth-card">
+                <h2>Вход для пациента</h2>
+                <div class="input-group">
+                    <input type="password" id="patientPassword" placeholder="Введите пароль">
+                    <button onclick="authenticate()">Войти</button>
+                </div>
+                <div id="authError" class="error-message"></div>
+            </div>
+        </div>
+
+        <!-- Выбор анкеты -->
+        <div id="templateSelection" class="page hidden">
+            <div class="header">
+                <h1>Выбор анкеты</h1>
+            </div>
+            <div id="templateList" class="template-list"></div>
+        </div>
+
+        <!-- Заполнение анкеты -->
+        <div id="questionnairePage" class="page hidden">
+            <div class="header">
+                <h1 id="questionnaireTitle">Анкета</h1>
+            </div>
+            <form id="questionnaireForm">
+                <div id="questionnaireContent"></div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Страница благодарности -->
+        <div id="thanksPage" class="page hidden">
+            <div class="thanks-container">
+                <div class="thanks-icon">✅</div>
+                <h2 id="thanksMessage">Спасибо за заполнение анкеты</h2>
+            </div>
+        </div>
+    </div>
+
+    <script src="patient.js"></script>
+</body>
+</html>

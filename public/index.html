@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Медицинская анкета</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Медицинская анкета</h1>
+            <p>Выберите тип рабочего места</p>
+        </div>
+        
+        <div class="main-menu">
+            <div class="menu-card" onclick="openWorkplace('patient')">
+                <div class="menu-icon">👤</div>
+                <h2>Рабочее место пациента</h2>
+                <p>Заполнение анкеты</p>
+            </div>
+            
+            <div class="menu-card" onclick="openWorkplace('doctor')">
+                <div class="menu-icon">⚕️</div>
+                <h2>Рабочее место врача</h2>
+                <p>Управление анкетами</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openWorkplace(type) {
+            if (type === 'patient') {
+                window.location.href = 'patient.html';
+            } else if (type === 'doctor') {
+                window.location.href = 'doctor.html';
+            }
+        }
+    </script>
+</body>
+</html>
