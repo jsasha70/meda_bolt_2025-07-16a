@@ -78,15 +78,29 @@ function renderQuestionnaire(template) {
     const title = document.getElementById('questionnaireTitle');
     
     console.log('Рендеринг анкеты:', template);
+    console.log('Полная структура template:', JSON.stringify(template, null, 2));
     
     title.textContent = template.questionnaire.title || 'Анкета';
     content.innerHTML = '';
     
-    // Проверяем различные возможные структуры данных
-    let sections = null;
+    // xml2js парсит XML в специфическом формате
+    let sections = [];
+    
+    console.log('template.questionnaire:', template.questionnaire);
+    console.log('template.questionnaire.sections:', template.questionnaire.sections);
+    
     if (template.questionnaire && template.questionnaire.sections) {
+        // xml2js всегда создает массивы для элементов
         if (Array.isArray(template.questionnaire.sections)) {
-            sections = template.questionnaire.sections;
+            // Если sections - это массив, берем первый элемент
+            const sectionsContainer = template.questionnaire.sections[0];
+            console.log('sectionsContainer:', sectionsContainer);
+            
+            if (sectionsContainer && sectionsContainer.section) {
+                sections = Array.isArray(sectionsContainer.section) 
+                    ? sectionsContainer.section 
+                    : [sectionsContainer.section];
+            }
         } else if (template.questionnaire.sections.section) {
             sections = Array.isArray(template.questionnaire.sections.section) 
                 ? template.questionnaire.sections.section 
@@ -102,14 +116,27 @@ function renderQuestionnaire(template) {
             sectionDiv.className = 'section';
             
             const sectionTitle = document.createElement('h3');
-            sectionTitle.textContent = section.title || section.title?.[0] || 'Раздел';
+            // xml2js оборачивает текстовые значения в массивы
+            const titleText = Array.isArray(section.title) ? section.title[0] : section.title;
+            sectionTitle.textContent = titleText || 'Раздел';
+            console.log('Заголовок секции:', titleText);
             sectionDiv.appendChild(sectionTitle);
             
-            // Обрабатываем вопросы
-            let questions = null;
+            // Обрабатываем вопросы - xml2js создает массивы
+            let questions = [];
+            console.log('section.questions:', section.questions);
+            
             if (section.questions) {
                 if (Array.isArray(section.questions)) {
-                    questions = section.questions;
+                    // Если questions - это массив, берем первый элемент
+                    const questionsContainer = section.questions[0];
+                    console.log('questionsContainer:', questionsContainer);
+                    
+                    if (questionsContainer && questionsContainer.question) {
+                        questions = Array.isArray(questionsContainer.question) 
+                            ? questionsContainer.question 
+                            : [questionsContainer.question];
+                    }
                 } else if (section.questions.question) {
                     questions = Array.isArray(section.questions.question) 
                         ? section.questions.question 
@@ -147,12 +174,17 @@ function createQuestionElement(question) {
     questionDiv.className = 'question';
     
     const label = document.createElement('label');
-    label.textContent = question.text || question.text?.[0] || 'Вопрос';
+    // xml2js оборачивает текстовые значения в массивы
+    const questionText = Array.isArray(question.text) ? question.text[0] : question.text;
+    label.textContent = questionText || 'Вопрос';
+    console.log('Текст вопроса:', questionText);
     questionDiv.appendChild(label);
     
-    const questionId = question.id || question.id?.[0] || Math.random().toString(36).substr(2, 9);
+    const questionId = Array.isArray(question.id) ? question.id[0] : question.id || Math.random().toString(36).substr(2, 9);
     const fieldName = `q_${questionId}`;
-    const questionType = question.type || question.type?.[0] || 'text';
+    const questionType = Array.isArray(question.type) ? question.type[0] : question.type || 'text';
+    
+    console.log('ID вопроса:', questionId, 'Тип:', questionType);
     
     switch (questionType) {
         case 'text':
@@ -168,8 +200,9 @@ function createQuestionElement(question) {
             numberInput.type = 'number';
             numberInput.name = fieldName;
             numberInput.id = fieldName;
-            if (question.step || question.step?.[0]) {
-                numberInput.step = question.step || question.step[0];
+            if (question.step) {
+                const stepValue = Array.isArray(question.step) ? question.step[0] : question.step;
+                numberInput.step = stepValue;
             }
             questionDiv.appendChild(numberInput);
             break;
@@ -193,11 +226,14 @@ function createQuestionElement(question) {
             
             // Обрабатываем опции
             let options = getQuestionOptions(question);
+            console.log('Опции для select:', options);
             if (options && options.length > 0) {
                 options.forEach(option => {
                     const optionEl = document.createElement('option');
-                    optionEl.value = option.value || option.value?.[0] || '';
-                    optionEl.textContent = option.text || option.text?.[0] || '';
+                    const optionValue = Array.isArray(option.value) ? option.value[0] : option.value;
+                    const optionText = Array.isArray(option.text) ? option.text[0] : option.text;
+                    optionEl.value = optionValue || '';
+                    optionEl.textContent = optionText || '';
                     select.appendChild(optionEl);
                 });
             }
@@ -209,6 +245,7 @@ function createQuestionElement(question) {
             radioGroup.className = 'radio-group';
             
             let radioOptions = getQuestionOptions(question);
+            console.log('Опции для radio:', radioOptions);
             if (radioOptions && radioOptions.length > 0) {
                 radioOptions.forEach(option => {
                     const radioItem = document.createElement('div');
@@ -217,18 +254,23 @@ function createQuestionElement(question) {
                     const radioInput = document.createElement('input');
                     radioInput.type = 'radio';
                     radioInput.name = fieldName;
-                    const optionValue = option.value || option.value?.[0] || '';
+                    const optionValue = Array.isArray(option.value) ? option.value[0] : option.value || '';
                     radioInput.value = optionValue;
                     radioInput.id = `${fieldName}_${optionValue}`;
                     
                     const radioLabel = document.createElement('label');
                     radioLabel.htmlFor = radioInput.id;
-                    radioLabel.textContent = option.text || option.text?.[0] || '';
+                    const optionText = Array.isArray(option.text) ? option.text[0] : option.text || '';
+                    radioLabel.textContent = optionText;
                     
                     radioItem.appendChild(radioInput);
                     radioItem.appendChild(radioLabel);
                     
-                    if (option.hasAdditionalText || option.hasAdditionalText?.[0] === 'true') {
+                    const hasAdditionalText = Array.isArray(option.hasAdditionalText) 
+                        ? option.hasAdditionalText[0] 
+                        : option.hasAdditionalText;
+                    
+                    if (hasAdditionalText === 'true') {
                         const additionalDiv = document.createElement('div');
                         additionalDiv.className = 'additional-text';
                         additionalDiv.style.display = 'none';
@@ -265,6 +307,7 @@ function createQuestionElement(question) {
             checkboxGroup.className = 'checkbox-group';
             
             let checkboxOptions = getQuestionOptions(question);
+            console.log('Опции для checkbox:', checkboxOptions);
             if (checkboxOptions && checkboxOptions.length > 0) {
                 checkboxOptions.forEach(option => {
                     const checkboxItem = document.createElement('div');
@@ -273,18 +316,23 @@ function createQuestionElement(question) {
                     const checkboxInput = document.createElement('input');
                     checkboxInput.type = 'checkbox';
                     checkboxInput.name = `${fieldName}[]`;
-                    const optionValue = option.value || option.value?.[0] || '';
+                    const optionValue = Array.isArray(option.value) ? option.value[0] : option.value || '';
                     checkboxInput.value = optionValue;
                     checkboxInput.id = `${fieldName}_${optionValue}`;
                     
                     const checkboxLabel = document.createElement('label');
                     checkboxLabel.htmlFor = checkboxInput.id;
-                    checkboxLabel.textContent = option.text || option.text?.[0] || '';
+                    const optionText = Array.isArray(option.text) ? option.text[0] : option.text || '';
+                    checkboxLabel.textContent = optionText;
                     
                     checkboxItem.appendChild(checkboxInput);
                     checkboxItem.appendChild(checkboxLabel);
                     
-                    if (option.hasAdditionalText || option.hasAdditionalText?.[0] === 'true') {
+                    const hasAdditionalText = Array.isArray(option.hasAdditionalText) 
+                        ? option.hasAdditionalText[0] 
+                        : option.hasAdditionalText;
+                    
+                    if (hasAdditionalText === 'true') {
                         const additionalDiv = document.createElement('div');
                         additionalDiv.className = 'additional-text';
                         additionalDiv.style.display = 'none';
@@ -330,16 +378,33 @@ function createQuestionElement(question) {
 
 // Функция для получения опций вопроса
 function getQuestionOptions(question) {
+    console.log('Получение опций для вопроса:', question);
+    console.log('question.options:', question.options);
+    
     if (!question.options) return null;
     
+    // xml2js всегда создает массивы
     if (Array.isArray(question.options)) {
-        return question.options;
+        // Если options - это массив, берем первый элемент
+        const optionsContainer = question.options[0];
+        console.log('optionsContainer:', optionsContainer);
+        
+        if (optionsContainer && optionsContainer.option) {
+            const options = Array.isArray(optionsContainer.option) 
+                ? optionsContainer.option 
+                : [optionsContainer.option];
+            console.log('Найденные опции:', options);
+            return options;
+        }
     } else if (question.options.option) {
-        return Array.isArray(question.options.option) 
+        const options = Array.isArray(question.options.option) 
             ? question.options.option 
             : [question.options.option];
+        console.log('Найденные опции (прямые):', options);
+        return options;
     }
     
+    console.log('Опции не найдены');
     return null;
 }
 
